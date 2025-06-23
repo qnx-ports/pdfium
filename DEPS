@@ -221,6 +221,10 @@ vars = {
   # the commit queue can handle CLs rolling zlib
   # and whatever else without interference from each other.
   'zlib_revision': 'c7678ba8af4577e45023b35ae96b6b71efa0acf7',
+
+  'checkout_qnx': False,
+  'qnx_build_files': 'https://github.com/qnx-ports/build-files.git',
+  'qnx_build_files_branch': 'main'
 }
 
 # Only these hosts are allowed for dependencies in this DEPS file.
@@ -587,6 +591,10 @@ deps = {
     'condition': 'checkout_v8',
   },
 
+  'qnx_build': {
+    'url': Var('qnx_build_files') + '@refs/heads/' + Var('qnx_build_files_branch'),
+    'condition': 'checkout_qnx',
+  },
 }
 
 recursedeps = [
@@ -768,5 +776,37 @@ hooks = [
                '--skip_remoteexec_cfg_fetch',
                '--quiet',
                ],
+  },
+
+  # Apply changes made for QNX.
+  {
+    'name': 'appple_qnx_patches',
+    'pattern': '.',
+    'condition': 'checkout_qnx',
+    'action': [
+        'python3',
+        'qnx_build/ports/pdfium/scripts/apply_patches.py'
+        ],
+  },
+
+  # Apply changes made into third-party reositories by QNX.
+  {
+    'name': 'appple_qnx_ancillary_patches',
+    'pattern': '.',
+    'condition': 'checkout_qnx',
+    'action': [
+        'python3',
+        'qnx_build/ports/pdfium/scripts/apply_ancillary_patches.py'
+        ],
+  },
+
+  {
+    'name': 'initialize_build_structure',
+    'pattern': '.',
+    'condition': 'checkout_qnx',
+    'action': [
+        'python3',
+        'qnx_build/ports/pdfium/scripts/generate_supplementary_files.py'
+        ],
   },
 ]
